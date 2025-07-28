@@ -1,3 +1,2 @@
-# Ignorar arquivos e pastas sensíveis e desnecessários
 .env
 node_modules/
