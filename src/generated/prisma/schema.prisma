@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  uuid      String    @unique @default(uuid())
+  email     String?   @unique
+  name      String?
+  cpf       String    @unique
+  cnpj      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  addresses Address[]
+  phones    Phone[]
+  quotes    Quote[]
+  sales     Sale[]
+}
+
+model Phone {
+  id         String   @id @default(cuid())
+  uuid       String   @unique @default(uuid())
+  customerId String
+  number     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  uuid       String   @unique @default(uuid())
+  customerId String
+  street     String
+  number     Int
+  district   String
+  city       String
+  state      String
+  zipCode    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+model Product {
+  id             String          @id @default(cuid())
+  uuid           String          @unique @default(uuid())
+  name           String
+  unitPrice      Float
+  unit           Unit
+  description    String
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  kitItems       KitItem[]
+  purchaseItems  PurchaseItem[]
+  quoteItems     QuoteItem[]
+  saleItems      SaleItem[]
+  stock          Stock?
+  stockMovements StockMovement[]
+}
+
+model Stock {
+  id        String   @id @default(cuid())
+  uuid      String   @unique @default(uuid())
+  productId String   @unique
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model StockMovement {
+  id        String       @id @default(cuid())
+  uuid      String       @unique @default(uuid())
+  productId String
+  date      DateTime
+  type      MovementType
+  origin    String
+  originId  String?
+  quantity  Int
+  note      String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  product   Product      @relation(fields: [productId], references: [id])
+}
+
+model Kit {
+  id          String    @id @default(cuid())
+  uuid        String    @unique @default(uuid())
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  description String
+  name        String
+  totalPrice  Float
+  updatedAt   DateTime  @updatedAt
+  kitItems    KitItem[]
+}
+
+model KitItem {
+  id        String   @id @default(cuid())
+  uuid      String   @unique @default(uuid())
+  kitId     String
+  productId String
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  kit       Kit      @relation(fields: [kitId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Quote {
+  id         String      @id @default(cuid())
+  uuid       String      @unique @default(uuid())
+  customerId String
+  totalValue Float
+  discount   Float
+  finalValue Float
+  status     QuoteStatus
+  note       String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  quoteItems QuoteItem[]
+  sale       Sale?
+}
+
+model QuoteItem {
+  id        String   @id @default(cuid())
+  uuid      String   @unique @default(uuid())
+  quoteId   String
+  productId String
+  quantity  Int
+  unit      Unit
+  unitPrice Float
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  quote     Quote    @relation(fields: [quoteId], references: [id])
+}
+
+model Sale {
+  id            String     @id @default(cuid())
+  uuid          String     @unique @default(uuid())
+  customerId    String
+  quoteId       String?    @unique
+  date          DateTime
+  totalValue    Float
+  discount      Float
+  paymentMethod String
+  deliveryFee   Float
+  status        SaleStatus
+  note          String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  customer      Customer   @relation(fields: [customerId], references: [id])
+  quote         Quote?     @relation(fields: [quoteId], references: [id])
+  saleItems     SaleItem[]
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  uuid      String   @unique @default(uuid())
+  saleId    String
+  productId String
+  quantity  Int
+  unit      Unit
+  unitPrice Float
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id])
+}
+
+model Purchase {
+  id            String         @id @default(cuid())
+  uuid          String         @unique @default(uuid())
+  date          DateTime
+  description   String
+  invoice       String
+  totalValue    Float
+  supplierId    String
+  extraInfo     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  supplier      Supplier       @relation(fields: [supplierId], references: [id])
+  purchaseItems PurchaseItem[]
+}
+
+model PurchaseItem {
+  id         String   @id @default(cuid())
+  uuid       String   @unique @default(uuid())
+  purchaseId String
+  productId  String
+  quantity   Int
+  unitPrice  Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id])
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+}
+
+model Supplier {
+  id        String     @id @default(cuid())
+  uuid      String     @unique @default(uuid())
+  taxId     String     @unique
+  name      String
+  phone     String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  purchases Purchase[]
+}
+
+enum Unit {
+  UN
+  LITER
+  SQM
+  KG
+}
+
+enum QuoteStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SaleStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+  ADJUSTMENT
+  RETURN
+}
