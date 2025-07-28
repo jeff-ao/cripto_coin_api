@@ -7,250 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Customer {
-  id          Int       @id @default(autoincrement())
-  uuid        String    @unique @default(uuid())
-  email       String?   @unique
-  name        String
-  cpf         String?    @unique
-  cnpj        String?   @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  phones      Phone[]
-  addresses   Address[]
-  quotes      Quote[]
-  sales       Sale[]
+model Coin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  symbol    String   @unique
+  createdAt DateTime @default(now())
+  prices    Price[]
+  trackings Tracking[]
 }
 
-model Phone {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  customerId Int
-  number     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  customer Customer @relation(fields: [customerId], references: [id])
+model Price {
+  id        Int      @id @default(autoincrement())
+  coinId    Int
+  value     Float
+  createdAt DateTime @default(now())
+  coin      Coin     @relation(fields: [coinId], references: [id])
 }
 
-model Address {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  customerId Int
-  street     String
-  number     Int
-  district   String
-  city       String
-  state      String
-  zipCode    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  customer Customer @relation(fields: [customerId], references: [id])
-}
-
-model Product {
-  id             Int              @id @default(autoincrement())
-  uuid           String           @unique @default(uuid())
-  name           String
-  unitPrice      Float
-  unit           Unit
-  description    String
-  active         Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  kitItems       KitItem[]
-  purchaseItems  PurchaseItem[]
-  quoteItems     QuoteItem[]
-  saleItems      SaleItem[]
-  stock          Stock?
-  stockMovements StockMovement[]
-}
-
-model Stock {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  productId  Int      @unique
-  quantity   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id])
-}
-
-model StockMovement {
-  id         Int          @id @default(autoincrement())
-  uuid       String       @unique @default(uuid())
-  productId  Int
-  date       DateTime
-  type       MovementType
-  origin     String
-  originId   String?
-  quantity   Int
-  note       String?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-
-  product Product @relation(fields: [productId], references: [id])
-}
-
-model Kit {
-  id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
-  name        String
-  description String
-  totalPrice  Float
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  kitItems KitItem[]
-}
-
-model KitItem {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  kitId      Int
-  productId  Int
-  quantity   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  kit     Kit     @relation(fields: [kitId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-}
-
-model Quote {
-  id         Int          @id @default(autoincrement())
-  uuid       String       @unique @default(uuid())
-  customerId Int
-  totalValue Float
-  discount   Float
-  finalValue Float
-  status     QuoteStatus
-  note       String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  quoteItems QuoteItem[]
-  sale       Sale?
-}
-
-model QuoteItem {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  quoteId    Int
-  productId  Int
-  quantity   Int
-  unit       Unit
-  unitPrice  Float
-  note       String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  quote   Quote   @relation(fields: [quoteId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-}
-
-model Sale {
-  id            Int        @id @default(autoincrement())
-  uuid          String     @unique @default(uuid())
-  customerId    Int
-  quoteId       Int?       @unique
-  date          DateTime
-  totalValue    Float
-  discount      Float
-  paymentMethod String
-  deliveryFee   Float
-  status        SaleStatus
-  note          String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  customer      Customer   @relation(fields: [customerId], references: [id])
-  quote         Quote?     @relation(fields: [quoteId], references: [id])
-  saleItems     SaleItem[]
-}
-
-model SaleItem {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  saleId     Int
-  productId  Int
-  quantity   Int
-  unit       Unit
-  unitPrice  Float
-  note       String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  sale    Sale    @relation(fields: [saleId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-}
-
-model Purchase {
-  id           Int        @id @default(autoincrement())
-  uuid         String     @unique @default(uuid())
-  date         DateTime
-  description  String
-  invoice      String
-  totalValue   Float
-  supplierId   Int
-  extraInfo    String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @default(now())
-
-  supplier      Supplier      @relation(fields: [supplierId], references: [id])
-  purchaseItems PurchaseItem[]
-}
-
-model PurchaseItem {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  purchaseId Int
-  productId  Int
-  quantity   Int
-  unitPrice  Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-
-  purchase Purchase @relation(fields: [purchaseId], references: [id])
-  product  Product  @relation(fields: [productId], references: [id])
-}
-
-model Supplier {
-  id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
-  taxId      String   @unique
-  name       String
-  phone      String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-
-  purchases Purchase[]
-}
-
-enum Unit {
-  UN
-  LITER
-  SQM
-  KG
-}
-
-enum QuoteStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum SaleStatus {
-  PENDING
-  PAID
-  CANCELED
-}
-
-enum MovementType {
-  ENTRY
-  EXIT
-  ADJUSTMENT
-  RETURN
+model Tracking {
+  id           Int      @id @default(autoincrement())
+  email        String
+  coinId       Int
+  intervalMin  Int      
+  createdAt    DateTime @default(now())
+  coin         Coin     @relation(fields: [coinId], references: [id])
 }
