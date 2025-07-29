@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Coin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  symbol    String   @unique
+  createdAt DateTime @default(now())
+  prices    Price[]
+  trackings Tracking[]
+}
+
+model Price {
+  id        Int      @id @default(autoincrement())
+  coinId    Int
+  value     Float
+  createdAt DateTime @default(now())
+  coin      Coin     @relation(fields: [coinId], references: [id])
+}
+
+model Tracking {
+  id           Int      @id @default(autoincrement())
+  email        String
+  coinId       Int
+  intervalMin  Int      
+  createdAt    DateTime @default(now())
+  coin         Coin     @relation(fields: [coinId], references: [id])
+}
