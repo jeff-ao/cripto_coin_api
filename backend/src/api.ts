@@ -5,6 +5,7 @@ import "dotenv/config";
 import morgan from "morgan";
 import userRoutes from "./routes/userRoutes";
 import trackingRoutes from "./routes/trackingRoutes";
+import coinRoutes from "./routes/coinRoutes";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use("/user", userRoutes);
 app.use("/tracking", trackingRoutes);
+app.use("/coins", coinRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "API rodando!" });
